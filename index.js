@@ -9,7 +9,9 @@ const PORT = process.env.PORT || 3127;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
-
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/categoria.html");
+});
 // ─── Configuración Supabase ───────────────────────────────────────
 // Reemplaza estos valores con los que aparecen en Settings > API de tu proyecto Supabase
 // Cambia esto:
