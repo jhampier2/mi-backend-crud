@@ -12,8 +12,9 @@ app.use(express.static(__dirname));
 
 // ─── Configuración Supabase ───────────────────────────────────────
 // Reemplaza estos valores con los que aparecen en Settings > API de tu proyecto Supabase
-const supabaseUrl = 'TU_URL_DE_SUPABASE';
-const supabaseKey = 'TU_ANON_KEY_DE_SUPABASE';
+// Cambia esto:
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ─── GET - Obtener todas las categorías ──────────────────────────
