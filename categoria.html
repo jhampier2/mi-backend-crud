@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Categorías</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ───────────────────────────────────── */
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #161922;
+      --card:     #1e2330;
+      --border:   #2a3045;
+      --accent:   #5b6af0;
+      --accent2:  #8b5cf6;
+      --success:  #22c55e;
+      --danger:   #ef4444;
+      --warn:     #f59e0b;
+      --text:     #e8ecf4;
+      --muted:    #7a8399;
+      --radius:   14px;
+    }
+
+    /* ── Reset & Base ────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 1.1rem;
+    }
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    header span {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-left: auto;
+    }
+    .db-badge {
+      background: rgba(91,106,240,.15);
+      color: var(--accent);
+      border: 1px solid rgba(91,106,240,.3);
+      padding: .25rem .7rem;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 500;
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Section title ───────────────────────────────── */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .6rem;
+    }
+
+    /* ── Form Card ───────────────────────────────────── */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+    .form-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .form-card h2 .mode-badge {
+      font-size: .65rem;
+      font-family: 'DM Sans', sans-serif;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      background: rgba(91,106,240,.15);
+      color: var(--accent);
+      border: 1px solid rgba(91,106,240,.25);
+      font-weight: 500;
+    }
+    .form-card h2 .mode-badge.edit {
+      background: rgba(245,158,11,.12);
+      color: var(--warn);
+      border-color: rgba(245,158,11,.25);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    input, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      padding: .65rem .9rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,106,240,.15);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Hidden id field */
+    #input-id { display: none; }
+
+    .form-actions {
+      display: flex;
+      gap: .75rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem;
+      font-weight: 500;
+      padding: .6rem 1.25rem;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #4a59e0; transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger {
+      background: rgba(239,68,68,.12);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,.2);
+    }
+    .btn-danger:hover { background: rgba(239,68,68,.22); }
+    .btn-edit {
+      background: rgba(245,158,11,.1);
+      color: var(--warn);
+      border: 1px solid rgba(245,158,11,.2);
+      font-size: .8rem;
+      padding: .4rem .8rem;
+    }
+    .btn-edit:hover { background: rgba(245,158,11,.2); }
+
+    /* ── Toast ───────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1.25rem;
+      font-size: .875rem;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      z-index: 999;
+      max-width: 320px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast .t-icon { font-size: 1.1rem; }
+
+    /* ── Table Card ──────────────────────────────────── */
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .table-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    #count-badge {
+      background: rgba(91,106,240,.15);
+      color: var(--accent);
+      border: 1px solid rgba(91,106,240,.25);
+      font-size: .7rem;
+      padding: .15rem .55rem;
+      border-radius: 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+    }
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      padding-left: 2rem;
+      width: 200px;
+      font-size: .82rem;
+    }
+    .search-wrap::before {
+      content: '⌕';
+      position: absolute;
+      left: .65rem;
+      top: 50%; transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: var(--surface);
+    }
+    th {
+      padding: .75rem 1.25rem;
+      text-align: left;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    td {
+      padding: .9rem 1.25rem;
+      font-size: .875rem;
+      border-top: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+
+    .id-chip {
+      background: rgba(91,106,240,.12);
+      color: var(--accent);
+      padding: .2rem .55rem;
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 600;
+      font-family: 'Syne', monospace;
+    }
+    .desc-cell {
+      color: var(--muted);
+      font-size: .82rem;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .actions-cell {
+      display: flex;
+      gap: .5rem;
+      justify-content: flex-end;
+    }
+
+    /* ── Empty / Loading state ───────────────────────── */
+    .state-row td {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+    .state-icon { font-size: 2rem; display: block; margin-bottom: .5rem; }
+
+    /* ── Confirm overlay ─────────────────────────────── */
+    #overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px);
+      display: grid; place-items: center;
+      z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    #overlay.show { opacity: 1; pointer-events: all; }
+    .dialog {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 360px;
+      max-width: 90vw;
+      text-align: center;
+      transform: scale(.96);
+      transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    #overlay.show .dialog { transform: scale(1); }
+    .dialog-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .dialog h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: .4rem;
+    }
+    .dialog p { color: var(--muted); font-size: .875rem; margin-bottom: 1.5rem; }
+    .dialog-actions { display: flex; gap: .75rem; justify-content: center; }
+
+    @media (max-width: 600px) {
+      main { padding: 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .search-wrap input { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────── -->
+<header>
+  <div class="logo-icon">🗂</div>
+  <h1>Gestión de Categorías</h1>
+  <div class="db-badge">mibd · categoria</div>
+  <span>Node.js + MySQL</span>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────── -->
+<main>
+
+  <!-- Formulario -->
+  <div>
+    <p class="section-title">Formulario</p>
+    <div class="form-card">
+      <h2>
+        <span id="form-title-text">Nueva Categoría</span>
+        <span class="mode-badge" id="mode-badge">Crear</span>
+      </h2>
+
+      <input type="hidden" id="input-id" />
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="input-desc">Descripción *</label>
+          <input type="text" id="input-desc" placeholder="Ej: Electrónica, Ropa, Alimentos…" maxlength="100" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="guardar()">
+          <span id="btn-icon">＋</span>
+          <span id="btn-text">Crear Categoría</span>
+        </button>
+        <button class="btn btn-secondary" onclick="resetForm()">
+          ↺ Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div>
+    <p class="section-title">Registros</p>
+    <div class="table-card">
+      <div class="table-header">
+        <h2>
+          Categorías
+          <span id="count-badge">0</span>
+        </h2>
+        <div class="search-wrap">
+          <input type="text" id="search" placeholder="Buscar..." oninput="filtrar()" />
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Descripción</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr class="state-row">
+            <td colspan="4">
+              <span class="state-icon">⏳</span>
+              Cargando datos…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Confirm Dialog ───────────────────────────────────── -->
+<div id="overlay">
+  <div class="dialog">
+    <div class="dialog-icon">🗑</div>
+    <h3>Eliminar Categoría</h3>
+    <p id="dialog-msg">¿Estás seguro? Esta acción no se puede deshacer.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="cerrarDialog()">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-del-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────── -->
+<div id="toast">
+  <span class="t-icon" id="toast-icon">✓</span>
+  <span id="toast-msg">Acción completada</span>
+</div>
+
+
+<script>
+  const API = "http://localhost:3127/api/categorias";
+  let todosLosRegistros = [];
+
+  // ── Toast ────────────────────────────────────────────
+  function toast(msg, tipo = "ok") {
+    const el = document.getElementById("toast");
+    const icons = { ok: "✓", error: "✕", warn: "⚠" };
+    const colors = { ok: "#22c55e", error: "#ef4444", warn: "#f59e0b" };
+    document.getElementById("toast-icon").textContent = icons[tipo];
+    document.getElementById("toast-icon").style.color = colors[tipo];
+    document.getElementById("toast-msg").textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 3000);
+  }
+
+  // ── Cargar tabla ─────────────────────────────────────
+  async function cargar() {
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error("Error al cargar");
+      todosLosRegistros = await res.json();
+      renderizar(todosLosRegistros);
+    } catch (e) {
+      document.getElementById("tabla-body").innerHTML = `
+        <tr class="state-row"><td colspan="4">
+          <span class="state-icon">⚠️</span>
+          No se pudo conectar al servidor.<br>
+          <small style="color:var(--muted)">Verifica que el backend esté corriendo en el puerto 3127.</small>
+        </td></tr>`;
+    }
+  }
+
+  function renderizar(data) {
+    const tbody = document.getElementById("tabla-body");
+    document.getElementById("count-badge").textContent = data.length;
+
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr class="state-row"><td colspan="4">
+          <span class="state-icon">📭</span>
+          No hay categorías registradas
+        </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td><span class="id-chip">#${c.id_categoria}</span></td>
+        <td>${escHTML(c.descripcion)}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn btn-edit" onclick="cargarEdicion(${c.id_categoria})">✏ Editar</button>
+            <button class="btn btn-danger" style="font-size:.8rem;padding:.4rem .8rem"
+              onclick="pedirEliminar(${c.id_categoria}, '${escHTML(c.descripcion)}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join("");
+  }
+
+  function filtrar() {
+    const q = document.getElementById("search").value.toLowerCase();
+    const filtrado = todosLosRegistros.filter(c =>
+      c.descripcion.toLowerCase().includes(q)
+    );
+    renderizar(filtrado);
+  }
+
+  // ── Guardar (create / update) ─────────────────────────
+  async function guardar() {
+    const id   = document.getElementById("input-id").value;
+    const desc = document.getElementById("input-desc").value.trim();
+
+    if (!desc) { toast("La descripción es obligatoria", "warn"); return; }
+
+    const body = { descripcion: desc };
+
+    try {
+      const res = await fetch(id ? `${API}/${id}` : API, {
+        method: id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      toast(data.mensaje || "Guardado correctamente", "ok");
+      resetForm();
+      cargar();
+    } catch (e) {
+      toast(e.message, "error");
+    }
+  }
+
+  // ── Cargar datos para editar ──────────────────────────
+  async function cargarEdicion(id) {
+    try {
+      const res  = await fetch(`${API}/${id}`);
+      const data = await res.json();
+      document.getElementById("input-id").value  = data.id_categoria;
+      document.getElementById("input-desc").value = data.descripcion;
+      document.getElementById("form-title-text").textContent = "Editar Categoría";
+      document.getElementById("mode-badge").textContent = "Editar";
+      document.getElementById("mode-badge").className  = "mode-badge edit";
+      document.getElementById("btn-icon").textContent  = "✎";
+      document.getElementById("btn-text").textContent  = "Guardar Cambios";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      toast("No se pudo cargar el registro", "error");
+    }
+  }
+
+  // ── Reset formulario ──────────────────────────────────
+  function resetForm() {
+    document.getElementById("input-id").value   = "";
+    document.getElementById("input-desc").value = "";
+    document.getElementById("form-title-text").textContent = "Nueva Categoría";
+    document.getElementById("mode-badge").textContent = "Crear";
+    document.getElementById("mode-badge").className  = "mode-badge";
+    document.getElementById("btn-icon").textContent  = "＋";
+    document.getElementById("btn-text").textContent  = "Crear Categoría";
+  }
+
+  // ── Eliminar con confirm dialog ───────────────────────
+  let pendingDeleteId = null;
+
+  function pedirEliminar(id, nombre) {
+    pendingDeleteId = id;
+    document.getElementById("dialog-msg").textContent =
+      `¿Eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`;
+    document.getElementById("overlay").classList.add("show");
+  }
+
+  function cerrarDialog() {
+    document.getElementById("overlay").classList.remove("show");
+    pendingDeleteId = null;
+  }
+
+  document.getElementById("confirm-del-btn").addEventListener("click", async () => {
+    if (!pendingDeleteId) return;
+    try {
+      const res  = await fetch(`${API}/${pendingDeleteId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      toast(data.mensaje || "Eliminado", "ok");
+      cargar();
+    } catch (e) {
+      toast(e.message, "error");
+    }
+    cerrarDialog();
+  });
+
+  // Cerrar al click fuera del dialog
+  document.getElementById("overlay").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("overlay")) cerrarDialog();
+  });
+
+  // ── Escape HTML ───────────────────────────────────────
+  function escHTML(str) {
+    return String(str)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // ── Init ──────────────────────────────────────────────
+  cargar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+crear un crud de base de datos y crear rutas get post put y delete
